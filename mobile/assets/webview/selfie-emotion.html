@@ -1,0 +1,251 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #07111f;
+        color: #f8fbff;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      #status {
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        text-align: center;
+        color: #b8c7df;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      img {
+        display: none;
+      }
+    </style>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"
+    ></script>
+  </head>
+  <body>
+    <div id="status">Emotion analyzer is loading...</div>
+    <img id="selfie" alt="Captured selfie for emotion analysis" />
+
+    <script>
+      /*  ──────────────────────────────────────────────
+       *  Selfie Emotion Detection via face-api.js
+       *  ──────────────────────────────────────────────
+       *
+       *  Models loaded: tinyFaceDetector + faceExpressionNet
+       *
+       *  INPUT  – postMessage from React Native:
+       *           { type: "analyze", base64: "<base64 image data>" }
+       *
+       *  OUTPUT – postMessage back to React Native:
+       *
+       *   Success:
+       *   {
+       *     ok: true,
+       *     faceDetected: true,
+       *     emotion: "happy",          // highest scoring expression
+       *     confidence: 0.94,          // 0-1 confidence score
+       *     review: "good",            // mapped review: good | average | bad
+       *     expressions: { ... }       // all 7 expression scores
+       *   }
+       *
+       *   No face detected:
+       *   {
+       *     ok: false,
+       *     faceDetected: false,
+       *     status: "no-face",
+       *     message: "No face detected. ..."
+       *   }
+       *
+       *   Error:
+       *   {
+       *     ok: false,
+       *     faceDetected: false,
+       *     message: "Error description"
+       *   }
+       *
+       *   Ready signal (sent on page load):
+       *   { type: "ready" }
+       *  ──────────────────────────────────────────────
+       */
+
+      // When used inline in App.js, this URL is injected dynamically from API_BASE_URL.
+      // For standalone testing, point to your local server:
+        "http://192.168.1.10:4000/models";
+      var statusNode = document.getElementById("status");
+      var imageNode = document.getElementById("selfie");
+      var modelsPromise = null;
+
+      // ── Helpers ──────────────────────────────────
+
+      function sendToReactNative(payload) {
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+        }
+      }
+
+      function setStatus(message) {
+        statusNode.textContent = message;
+      }
+
+      /**
+       * Map the top detected expression to a review category.
+       *   happy              → "good"
+       *   neutral, surprised → "average"
+       *   sad, angry, etc.   → "bad"
+       */
+      function getReviewFromExpression(expression) {
+        if (expression === "happy") {
+          return "good";
+        }
+
+        if (expression === "neutral" || expression === "surprised") {
+          return "average";
+        }
+
+        return "bad";
+      }
+
+      /**
+       * Return [expressionName, score] for the highest-scoring expression.
+       */
+      function getTopExpression(expressions) {
+        return Object.entries(expressions).sort(function (a, b) {
+          return b[1] - a[1];
+        })[0];
+      }
+
+      // ── Model Loading ───────────────────────────
+
+      function loadModels() {
+        if (!modelsPromise) {
+          modelsPromise = Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+            faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+          ]);
+        }
+
+        return modelsPromise;
+      }
+
+      // ── Core Analysis ───────────────────────────
+
+      function analyzeImage(base64) {
+        setStatus("Loading emotion model...");
+
+        loadModels()
+          .then(function () {
+            setStatus("Analyzing expression...");
+
+            imageNode.onload = function () {
+              faceapi
+                .detectSingleFace(
+                  imageNode,
+                  new faceapi.TinyFaceDetectorOptions({
+                    inputSize: 416,
+                    scoreThreshold: 0.4,
+                  })
+                )
+                .withFaceExpressions()
+                .then(function (result) {
+                  // ── No face detected ──
+                  if (!result) {
+                    sendToReactNative({
+                      ok: false,
+                      faceDetected: false,
+                      status: "no-face",
+                      message:
+                        "No face detected. Please retake the selfie with better lighting and face the camera directly.",
+                    });
+                    setStatus("No face detected. Retake the selfie.");
+                    return;
+                  }
+
+                  // ── Face detected – extract top emotion ──
+                  var top = getTopExpression(result.expressions);
+                  var emotion = top[0];
+                  var confidence = top[1];
+
+                  sendToReactNative({
+                    ok: true,
+                    faceDetected: true,
+                    emotion: emotion,
+                    confidence: confidence,
+                    review: getReviewFromExpression(emotion),
+                    expressions: result.expressions,
+                  });
+
+                  setStatus("Analysis complete: " + emotion);
+                })
+                .catch(function (err) {
+                  sendToReactNative({
+                    ok: false,
+                    faceDetected: false,
+                    message: err.message || "Emotion analysis failed.",
+                  });
+                  setStatus("Emotion analysis failed.");
+                });
+            };
+
+            imageNode.src = "data:image/jpeg;base64," + base64;
+          })
+          .catch(function (err) {
+            sendToReactNative({
+              ok: false,
+              faceDetected: false,
+              message:
+                err.message ||
+                "Could not load the emotion model. Check internet connection.",
+            });
+            setStatus("Could not load emotion model.");
+          });
+      }
+
+      // ── Message Handler ─────────────────────────
+
+      function handleMessage(event) {
+        try {
+          var payload = JSON.parse(event.data);
+
+          if (payload.type === "analyze" && payload.base64) {
+            analyzeImage(payload.base64);
+          }
+        } catch (error) {
+          sendToReactNative({
+            ok: false,
+            faceDetected: false,
+            message: "Invalid analyzer payload.",
+          });
+        }
+      }
+
+      // Listen for messages from React Native (both methods for compatibility)
+      document.addEventListener("message", handleMessage);
+      window.addEventListener("message", handleMessage);
+
+      // Signal that the WebView is ready
+      window.addEventListener("load", function () {
+        sendToReactNative({ type: "ready" });
+      });
+    </script>
+  </body>
+</html>

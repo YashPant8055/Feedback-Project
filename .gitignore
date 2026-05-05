@@ -1,0 +1,27 @@
+# Dependency directories
+node_modules/
+
+# Expo files
+.expo/
+dist/
+web-build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Builds and Documentation
+*.apk
+*.aab
+*.ipa
+*.md

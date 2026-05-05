@@ -1,0 +1,7 @@
+node_modules
+.expo
+dist
+npm-debug.*
+.env
+.env.*
+!.env.example
