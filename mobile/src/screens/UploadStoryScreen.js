@@ -18,16 +18,6 @@ import { showAlert } from '../utils/alertUtils';
 
 export default function UploadStoryScreen({ onBack, profile, theme, onUploadSuccess }) {
   const [isCleaningUp, setIsCleaningUp] = useState(false);
-
-  if (!profile) {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={theme.accent} />
-        <Text style={{ color: theme.textMuted, marginTop: 20 }}>Loading profile...</Text>
-      </View>
-    );
-  }
-
   const [title, setTitle] = useState('');
   const [uploading, setUploading] = useState(false);
   const [currentClipProgress, setCurrentClipProgress] = useState(0);
@@ -46,6 +36,15 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
     mobile_average: null,
     mobile_bad: null,
   });
+
+  if (!profile) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme?.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme?.accent} />
+        <Text style={{ color: theme?.textMuted, marginTop: 20 }}>Loading profile...</Text>
+      </View>
+    );
+  }
 
   const clipConfig = [
     { id: 'landscape_main', label: 'Landscape Main', icon: '🎬' },
