@@ -883,18 +883,18 @@ export default function TeacherDashboard({
                     </Pressable>
 
                     <Pressable
-                      style={[styles.sideMenuItem, { backgroundColor: theme.panel, borderColor: theme.inputBorder, marginTop: 12 }]}
+                      style={[styles.sideMenuItem, { backgroundColor: theme.panel, borderColor: theme.inputBorder }]}
                       onPress={() => {
                         closeSideMenu();
-                        onViewClips?.();
+                        onViewClips();
                       }}
                     >
                       <View style={styles.sideMenuItemBody}>
                         <Text style={[styles.sideMenuItemText, { color: theme.textPrimary }]}>
-                          My Clips (Story Vault)
+                          Story Vault
                         </Text>
                         <Text style={[styles.sideMenuItemSubtext, { color: theme.textMuted }]}>
-                          Manage and upload immersive media stories
+                          Upload and manage your immersive clips
                         </Text>
                       </View>
                     </Pressable>

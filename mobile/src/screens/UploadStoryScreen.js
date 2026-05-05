@@ -17,7 +17,6 @@ import { getAuthHeader } from '../utils/auth';
 import { showAlert } from '../utils/alertUtils';
 
 export default function UploadStoryScreen({ onBack, profile, theme, onUploadSuccess }) {
-  const [isCleaningUp, setIsCleaningUp] = useState(false);
   const [title, setTitle] = useState('');
   const [uploading, setUploading] = useState(false);
   const [currentClipProgress, setCurrentClipProgress] = useState(0);
@@ -25,6 +24,7 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
   const [activeClipId, setActiveClipId] = useState(null);
   const [completedClips, setCompletedClips] = useState([]);
   const [uploadedPublicIds, setUploadedPublicIds] = useState([]); // Track for cleanup
+  const [isCleaningUp, setIsCleaningUp] = useState(false);
   
   const [clips, setClips] = useState({
     landscape_main: null,
@@ -36,15 +36,6 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
     mobile_average: null,
     mobile_bad: null,
   });
-
-  if (!profile) {
-    return (
-      <View style={[styles.container, { backgroundColor: theme?.background, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={theme?.accent} />
-        <Text style={{ color: theme?.textMuted, marginTop: 20 }}>Loading profile...</Text>
-      </View>
-    );
-  }
 
   const clipConfig = [
     { id: 'landscape_main', label: 'Landscape Main', icon: '🎬' },
@@ -104,24 +95,12 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
       
       // Cloudinary required fields for signed upload
       if (Platform.OS === 'web') {
-        let uploadFile = file.file;
-        
-        // Web Fix: If file.file is missing, fetch the blob from the URI
-        if (!uploadFile && file.uri) {
-          try {
-            const response = await fetch(file.uri);
-            uploadFile = await response.blob();
-          } catch (blobErr) {
-            console.error("Blob conversion failed:", blobErr);
-          }
-        }
-
-        if (!uploadFile) {
-          reject(new Error(`Web upload failed: could not retrieve file data for ${clipId}`));
+        if (!file?.file) {
+          reject(new Error(`Web upload failed: missing browser file object for ${clipId}`));
           return;
         }
 
-        formData.append('file', uploadFile, file.fileName || fallbackName);
+        formData.append('file', file.file, file.file.name || fallbackName);
       } else {
         formData.append('file', {
           uri: file.uri,
@@ -185,17 +164,15 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
     });
   };
 
-  const missingClips = clipConfig.filter(c => !clips[c.id]);
-
   const handleUpload = async () => {
+    const missingClips = clipConfig.filter(c => !clips[c.id]);
     if (missingClips.length > 0) {
-      const missingLabels = missingClips.map(c => c.label).join('\n• ');
-      showAlert('Incomplete Story', `You must select all 8 video clips before uploading.\n\nMissing:\n• ${missingLabels}`);
+      showAlert('Incomplete Story', `Please select all 8 clips. Missing: ${missingClips.map(c => c.label).join(', ')}`);
       return;
     }
 
     if (!title.trim()) {
-      showAlert('Title Required', 'Please enter a name for this story vault.');
+      showAlert('Title Required', 'Please give your story a name.');
       return;
     }
 
@@ -242,7 +219,7 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
           landscape,
           mobile,
           cloudinaryIds,
-          teacherId: profile.id || profile._id,
+          teacherId: profile.id,
           teacherName: profile.name,
         }),
       });
@@ -425,20 +402,14 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
           )}
 
           <Pressable
-            style={[
-              styles.uploadButton, 
-              { backgroundColor: theme.accent }, 
-              (uploading || missingClips.length > 0 || !title.trim()) && { opacity: 0.5 }
-            ]}
+            style={[styles.uploadButton, { backgroundColor: theme.accent, opacity: uploading ? 0.7 : 1, marginTop: 20 }]}
             onPress={handleUpload}
-            disabled={uploading || missingClips.length > 0 || !title.trim()}
+            disabled={uploading}
           >
             {uploading ? (
               <ActivityIndicator color={theme.onAccent} />
             ) : (
-              <Text style={[styles.uploadButtonText, { color: theme.onAccent }]}>
-                {missingClips.length > 0 ? `Missing ${missingClips.length} Clips` : 'Upload Full Story'}
-              </Text>
+              <Text style={[styles.uploadButtonText, { color: theme.onAccent }]}>Upload Full Story</Text>
             )}
           </Pressable>
         </View>

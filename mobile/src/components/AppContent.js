@@ -654,7 +654,6 @@ export default function AppContent() {
         theme={displayTheme}
         onLogout={handleLogout}
         onViewClips={() => setScreen("myClips")}
-        onGoToUpload={() => setScreen("uploadStory")}
         themeSettings={themeSettings}
         onThemeSettingsChange={handleThemeSettingsChange}
       />
