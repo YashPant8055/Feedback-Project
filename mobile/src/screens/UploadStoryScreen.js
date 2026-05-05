@@ -17,6 +17,17 @@ import { getAuthHeader } from '../utils/auth';
 import { showAlert } from '../utils/alertUtils';
 
 export default function UploadStoryScreen({ onBack, profile, theme, onUploadSuccess }) {
+  const [isCleaningUp, setIsCleaningUp] = useState(false);
+
+  if (!profile) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
+        <Text style={{ color: theme.textMuted, marginTop: 20 }}>Loading profile...</Text>
+      </View>
+    );
+  }
+
   const [title, setTitle] = useState('');
   const [uploading, setUploading] = useState(false);
   const [currentClipProgress, setCurrentClipProgress] = useState(0);
@@ -24,7 +35,6 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
   const [activeClipId, setActiveClipId] = useState(null);
   const [completedClips, setCompletedClips] = useState([]);
   const [uploadedPublicIds, setUploadedPublicIds] = useState([]); // Track for cleanup
-  const [isCleaningUp, setIsCleaningUp] = useState(false);
   
   const [clips, setClips] = useState({
     landscape_main: null,
@@ -95,12 +105,24 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
       
       // Cloudinary required fields for signed upload
       if (Platform.OS === 'web') {
-        if (!file?.file) {
-          reject(new Error(`Web upload failed: missing browser file object for ${clipId}`));
+        let uploadFile = file.file;
+        
+        // Web Fix: If file.file is missing, fetch the blob from the URI
+        if (!uploadFile && file.uri) {
+          try {
+            const response = await fetch(file.uri);
+            uploadFile = await response.blob();
+          } catch (blobErr) {
+            console.error("Blob conversion failed:", blobErr);
+          }
+        }
+
+        if (!uploadFile) {
+          reject(new Error(`Web upload failed: could not retrieve file data for ${clipId}`));
           return;
         }
 
-        formData.append('file', file.file, file.file.name || fallbackName);
+        formData.append('file', uploadFile, file.fileName || fallbackName);
       } else {
         formData.append('file', {
           uri: file.uri,
