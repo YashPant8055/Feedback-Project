@@ -167,12 +167,13 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
   const handleUpload = async () => {
     const missingClips = clipConfig.filter(c => !clips[c.id]);
     if (missingClips.length > 0) {
-      showAlert('Incomplete Story', `Please select all 8 clips. Missing: ${missingClips.map(c => c.label).join(', ')}`);
+      const missingLabels = missingClips.map(c => c.label).join('\n• ');
+      showAlert('Incomplete Story', `You must select all 8 video clips before uploading.\n\nMissing:\n• ${missingLabels}`);
       return;
     }
 
     if (!title.trim()) {
-      showAlert('Title Required', 'Please give your story a name.');
+      showAlert('Title Required', 'Please enter a name for this story vault.');
       return;
     }
 
@@ -219,7 +220,7 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
           landscape,
           mobile,
           cloudinaryIds,
-          teacherId: profile.id,
+          teacherId: profile.id || profile._id,
           teacherName: profile.name,
         }),
       });
@@ -402,14 +403,20 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
           )}
 
           <Pressable
-            style={[styles.uploadButton, { backgroundColor: theme.accent, opacity: uploading ? 0.7 : 1, marginTop: 20 }]}
+            style={[
+              styles.uploadButton, 
+              { backgroundColor: theme.accent }, 
+              (uploading || missingClips.length > 0 || !title.trim()) && { opacity: 0.5 }
+            ]}
             onPress={handleUpload}
-            disabled={uploading}
+            disabled={uploading || missingClips.length > 0 || !title.trim()}
           >
             {uploading ? (
               <ActivityIndicator color={theme.onAccent} />
             ) : (
-              <Text style={[styles.uploadButtonText, { color: theme.onAccent }]}>Upload Full Story</Text>
+              <Text style={[styles.uploadButtonText, { color: theme.onAccent }]}>
+                {missingClips.length > 0 ? `Missing ${missingClips.length} Clips` : 'Upload Full Story'}
+              </Text>
             )}
           </Pressable>
         </View>
