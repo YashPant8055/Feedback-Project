@@ -185,8 +185,9 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
     });
   };
 
+  const missingClips = clipConfig.filter(c => !clips[c.id]);
+
   const handleUpload = async () => {
-    const missingClips = clipConfig.filter(c => !clips[c.id]);
     if (missingClips.length > 0) {
       const missingLabels = missingClips.map(c => c.label).join('\n• ');
       showAlert('Incomplete Story', `You must select all 8 video clips before uploading.\n\nMissing:\n• ${missingLabels}`);
