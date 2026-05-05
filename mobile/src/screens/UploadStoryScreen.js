@@ -219,7 +219,7 @@ export default function UploadStoryScreen({ onBack, profile, theme, onUploadSucc
           landscape,
           mobile,
           cloudinaryIds,
-          teacherId: profile.id,
+          teacherId: profile.id || profile._id,
           teacherName: profile.name,
         }),
       });

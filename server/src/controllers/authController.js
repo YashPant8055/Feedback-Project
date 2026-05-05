@@ -59,6 +59,7 @@ if (role === "teacher") {
         message: "Your registration request has been sent. Please wait for admin approval.",
         pending: true,
         user: {
+          id: teacher._id,
           _id: teacher._id,
           name: teacher.name,
           email: teacher.email,
@@ -119,6 +120,7 @@ exports.login = async (req, res) => {
         return res.json({
           message: "Login successful",
           user: {
+            id: admin._id,
             _id: admin._id,
             name: admin.name,
             email: admin.email,
