@@ -30,7 +30,8 @@ export default function AdminDashboardScreen({
   theme, 
   onLogout, 
   themeSettings,
-  onThemeSettingsChange
+  onThemeSettingsChange,
+  onGoToUpload
 }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -358,10 +359,17 @@ export default function AdminDashboardScreen({
              <Text style={[s.libTitle, { color: colors.text }]}>Story Vault</Text>
              <Text style={[s.libSub, { color: colors.muted }]}>{clips.length} Story assets synced</Text>
          </View>
-         <Pressable style={[s.headerActionBtn, { backgroundColor: colors.input, borderColor: colors.border }]} onPress={() => setActiveTab('rooms')}>
+         <Pressable 
+            style={[s.headerActionBtn, { backgroundColor: colors.mix[0], borderColor: colors.mix[0] }]} 
+            onPress={onGoToUpload}
+          >
+            <Text style={{ fontSize: 16 }}>➕</Text>
+            <Text style={[s.headerActionText, { color: '#fff' }]}>UPLOAD</Text>
+          </Pressable>
+          <Pressable style={[s.headerActionBtn, { backgroundColor: colors.input, borderColor: colors.border }]} onPress={() => setActiveTab('rooms')}>
             <Text style={{ fontSize: 16 }}>📺</Text>
             <Text style={[s.headerActionText, { color: colors.text }]}>ROOMS</Text>
-         </Pressable>
+          </Pressable>
       </View>
       <FlatList
          data={clips}

@@ -7,8 +7,15 @@
     "preview": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://feedback-server-bfav.onrender.com"
       }
     },
-    "production": {}
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://feedback-server-bfav.onrender.com"
+      }
+    }
   }
 }
