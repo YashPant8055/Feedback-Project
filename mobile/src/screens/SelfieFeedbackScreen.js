@@ -237,6 +237,7 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
         {previewSource ? (
           <Image source={previewSource} style={styles.selfiePreviewImage} />
         ) : (
+          <Camera
             ref={cameraRef}
             style={styles.selfieCamera}
             type={CameraType.front}
