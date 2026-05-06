@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, ActivityIndicator, Image, StyleSheet } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { View, Text, Pressable, ActivityIndicator, Image, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlatformWebView } from '../components/WebViewPlatform';
 import styles from '../styles/globalStyles';
@@ -56,7 +57,7 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
         setCapturedBase64(dataUrl.split(',')[1]);
       }
     } catch (_error) {
-      showAlert("Camera error", "Could not take the photo. Please try again.");
+      showAlert("Camera error", "Could not take the photo.");
     } finally {
       setCapturing(false);
     }
@@ -66,11 +67,14 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
   const handleAnalyzeEmotion = () => {
     if (!capturedBase64) return;
     setAnalyzing(true);
+    setEmotionResult(null);
     if (webViewRef.current) {
       webViewRef.current.postMessage(JSON.stringify({ type: "analyze", base64: capturedBase64 }));
       analysisTimeoutRef.current = setTimeout(() => {
-        setAnalyzing(false);
-        showAlert("Timeout", "Analysis took too long.");
+        if (analyzing) {
+          setAnalyzing(false);
+          showAlert("Analysis Timed Out", "The emotion analyzer took too long.");
+        }
       }, 30000);
     }
   };
@@ -98,27 +102,35 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
       emoji: emotionResult.emotion,
       emotion: emotionResult.emotion,
       review: emotionResult.feedback,
-      message: `Feedback: ${feedbackLabel} detected via Selfie`,
+      message: `Feedback: ${feedbackLabel} — Detected emotion: ${emotionResult.emotion} (${Math.round(emotionResult.confidence * 100)}% confidence)`,
       metadata: { ...emotionResult },
     });
     if (result.ok) onNavigateToAnimation(emotionResult.feedback);
   };
 
-  const previewSource = capturedBase64 ? { uri: `data:image/jpeg;base64,${capturedBase64}` } : null;
+  const handleRetake = () => {
+    setCapturedBase64("");
+    setEmotionResult(null);
+    setAnalyzing(false);
+    setIsPanelExpanded(true);
+  };
 
   if (!webPermission) {
     return (
-      <View style={[styles.selfieScreenRoot, { backgroundColor: theme.background, paddingTop: 100, alignItems: 'center' }]}>
-        <Text style={{ color: theme.textPrimary, fontSize: 22, fontWeight: '900', marginBottom: 20 }}>Web Camera Access</Text>
+      <View style={[styles.selfieScreenRoot, styles.selfiePermissionRoot, { backgroundColor: theme.background, paddingTop: Math.max(insets.top, 20) }]}>
+        <Text style={[styles.selfieScreenTitle, { color: theme.textPrimary }]}>Camera Permission</Text>
+        <Text style={[styles.selfieScreenText, { color: theme.textMuted }]}>Allow camera access so Selfie Feedback can capture your expression.</Text>
         <Pressable style={[styles.selfiePrimaryAction, { backgroundColor: theme.accent }]} onPress={requestPermission}>
-          <Text style={{ color: theme.onAccent, fontWeight: '800' }}>Allow Camera</Text>
+          <Text style={[styles.selfiePrimaryActionText, { color: theme.onAccent }]}>Allow Camera</Text>
         </Pressable>
-        <Pressable style={{ marginTop: 20 }} onPress={onBack}>
-          <Text style={{ color: theme.textMuted }}>Go Back</Text>
+        <Pressable style={styles.selfieGhostAction} onPress={onBack}>
+          <Text style={[styles.selfieGhostActionText, { color: theme.textPrimary }]}>Back</Text>
         </Pressable>
       </View>
     );
   }
+
+  const previewSource = capturedBase64 ? { uri: `data:image/jpeg;base64,${capturedBase64}` } : null;
 
   return (
     <View style={[styles.selfieScreenRoot, { backgroundColor: "#000" }]}>
@@ -133,33 +145,66 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
         )}
       </View>
 
-      <View style={[styles.selfieTopBar, { paddingTop: Math.max(insets.top, 20), backgroundColor: "rgba(0,0,0,0.5)" }]}>
-        <Pressable onPress={onBack}><Text style={{ color: '#fff', padding: 10 }}>Back</Text></Pressable>
+      <View style={[styles.selfieTopBar, { paddingTop: Math.max(insets.top, 18), backgroundColor: "rgba(0,0,0,0.5)" }]}>
+        <Pressable style={styles.selfieBackButton} onPress={onBack}>
+          <Text style={styles.selfieBackButtonText}>Back</Text>
+        </Pressable>
+        <View style={styles.selfieTopCopy}>
+          <Text style={[styles.selfieTopEyebrow, { color: theme.accent }]}>Selfie Feedback</Text>
+          <Text style={[styles.selfieTopTitle, { color: theme.textPrimary }]}>Capture your expression</Text>
+        </View>
       </View>
 
-      <View style={[styles.selfieControlPanel, { bottom: 40, backgroundColor: 'rgba(0,0,0,0.8)', padding: 20, borderRadius: 20, margin: 20 }]}>
-        {emotionResult ? (
-          <View style={{ alignItems: 'center' }}>
-            <Text style={{ fontSize: 40 }}>{EMOTION_EMOJI_MAP[emotionResult.emotion]}</Text>
-            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>{emotionResult.emotion.toUpperCase()}</Text>
-            <Pressable style={{ backgroundColor: theme.accent, padding: 15, borderRadius: 10, marginTop: 10 }} onPress={handleSaveSelfieFeedback}>
-              <Text style={{ color: '#fff' }}>Save Feedback</Text>
-            </Pressable>
-            <Pressable style={{ marginTop: 10 }} onPress={() => setCapturedBase64("")}><Text style={{ color: '#fff' }}>Retake</Text></Pressable>
+      <View style={[styles.selfieControlPanel, { backgroundColor: "rgba(11, 22, 40, 0.85)", borderColor: "rgba(255,255,255,0.15)", bottom: Math.max(insets.bottom, 24), paddingTop: isPanelExpanded ? 24 : 12, paddingBottom: isPanelExpanded ? 24 : 16 }]}>
+        <Pressable style={styles.selfiePanelToggle} onPress={() => setIsPanelExpanded(!isPanelExpanded)}>
+          <Text style={[styles.selfiePanelToggleText, { color: theme.textMuted }]}>{isPanelExpanded ? "▼ Hide Controls" : "▲ Show Controls"}</Text>
+        </Pressable>
+
+        {isPanelExpanded && (
+          <View style={{ marginTop: 16 }}>
+            <Text style={[styles.selfieStatusTitle, { color: theme.textPrimary }]}>
+              {emotionResult ? "Emotion Detected!" : capturedBase64 ? (analyzing ? "Analyzing..." : "Selfie captured") : "Ready for selfie"}
+            </Text>
+            <Text style={[styles.selfieStatusText, { color: theme.textMuted }]}>
+              {emotionResult ? "Your facial expression has been analyzed. Save your feedback or retake." : capturedBase64 ? (analyzing ? "Please wait..." : "Tap Analyze Emotion when ready.") : "Center your face in the frame."}
+            </Text>
+
+            {emotionResult ? (
+              <>
+                <View style={[styles.emotionResultCard, { borderColor: theme.accent }]}>
+                  <Text style={styles.emotionEmoji}>{EMOTION_EMOJI_MAP[emotionResult.emotion] || "\u{1F914}"}</Text>
+                  <Text style={[styles.emotionLabel, { color: theme.textPrimary }]}>{emotionResult.emotion}</Text>
+                  <Text style={[styles.emotionConfidence, { color: theme.textMuted }]}>{Math.round(emotionResult.confidence * 100)}% confidence</Text>
+                  <View style={[styles.feedbackResultBanner, { backgroundColor: FEEDBACK_CONFIG[emotionResult.feedback].bg }]}>
+                    <Text style={[styles.feedbackResultLabel, { color: theme.textMuted }]}>Feedback:</Text>
+                    <Text style={[styles.feedbackResultValue, { color: FEEDBACK_CONFIG[emotionResult.feedback].color }]}>{FEEDBACK_CONFIG[emotionResult.feedback].label}</Text>
+                  </View>
+                </View>
+                <View style={styles.selfieActionRow}>
+                  <Pressable style={styles.selfieSecondaryAction} onPress={handleRetake}><Text style={styles.selfieSecondaryActionText}>Retake</Text></Pressable>
+                  <Pressable style={[styles.selfiePrimaryAction, styles.selfieAnalyzeAction, { backgroundColor: theme.accent }]} onPress={handleSaveSelfieFeedback}>
+                    <Text style={[styles.selfiePrimaryActionText, { color: theme.onAccent }]}>Save Feedback</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : capturedBase64 ? (
+              <View style={styles.selfieActionRow}>
+                <Pressable style={styles.selfieSecondaryAction} onPress={handleRetake}><Text style={styles.selfieSecondaryActionText}>Retake</Text></Pressable>
+                <Pressable style={[styles.selfiePrimaryAction, styles.selfieAnalyzeAction, { backgroundColor: theme.accent }]} onPress={handleAnalyzeEmotion}>
+                  {analyzing ? <ActivityIndicator size="small" color={theme.onAccent} /> : <Text style={[styles.selfiePrimaryActionText, { color: theme.onAccent }]}>Analyze Emotion</Text>}
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable style={[styles.selfieCaptureButton, capturing && styles.selfieCaptureButtonDisabled]} onPress={handleCapture}>
+                <View style={styles.selfieCaptureButtonInner} />
+              </Pressable>
+            )}
           </View>
-        ) : capturedBase64 ? (
-          <View style={{ alignItems: 'center' }}>
-            <Pressable style={{ backgroundColor: theme.accent, padding: 15, borderRadius: 10 }} onPress={handleAnalyzeEmotion}>
-              {analyzing ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff' }}>Analyze Emotion</Text>}
-            </Pressable>
-            <Pressable style={{ marginTop: 10 }} onPress={() => setCapturedBase64("")}><Text style={{ color: '#fff' }}>Retake</Text></Pressable>
-          </View>
-        ) : (
-          <Pressable style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: '#fff', alignSelf: 'center', borderWidth: 5, borderColor: theme.accent }} onPress={handleCapture} />
         )}
       </View>
 
-      <PlatformWebView ref={webViewRef} source={{ html: getSelfieEmotionHtml(API_BASE_URL) }} onMessage={handleWebViewMessage} style={{ position: 'absolute', top: -1000 }} />
+      <PlatformWebView ref={webViewRef} source={{ html: getSelfieEmotionHtml(API_BASE_URL) }} onMessage={handleWebViewMessage} style={{ position: 'absolute', top: -1000, left: -1000, width: 300, height: 300, opacity: 0 }} />
+      <StatusBar hidden />
     </View>
   );
 }
