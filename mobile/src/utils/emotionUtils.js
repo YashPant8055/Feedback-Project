@@ -68,18 +68,20 @@ export function getSelfieEmotionHtml(apiBaseUrl) {
       }
 
       function analyzeImage(base64) {
-        var startInfo = base64.substring(0, 30);
-        var len = base64.length;
-        sendToRN({type:"debug", message: "Received base64. Length: " + len + ", Start: " + startInfo});
+        if (!base64) {
+          sendToRN({ok:false, faceDetected:false, message:"No image data received for analysis."});
+          return;
+        }
 
         setStatus("Loading emotion model...");
         loadModels().then(function() {
           setStatus("Analyzing expression...");
           
-          var img = new Image();
-          img.onload = function() {
-            sendToRN({type:"debug", message: "Image loaded into memory successfully. Size: " + img.width + "x" + img.height});
-            faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({inputSize:416, scoreThreshold:0.4}))
+          // Clean the base64 string just in case
+          var cleanBase64 = base64.replace(/\s/g, "");
+          
+          imageNode.onload = function() {
+            faceapi.detectSingleFace(imageNode, new faceapi.TinyFaceDetectorOptions({inputSize:416, scoreThreshold:0.4}))
               .withFaceExpressions()
               .then(function(result) {
                 if(!result) {
@@ -96,17 +98,12 @@ export function getSelfieEmotionHtml(apiBaseUrl) {
                 setStatus("Analysis failed.");
               });
           };
-          img.onerror = function() {
-            sendToRN({ok:false, faceDetected:false, message: "Failed to load captured image. Length: " + len + ", Start: " + startInfo});
+          imageNode.onerror = function() {
+            sendToRN({ok:false, faceDetected:false, message:"Failed to load the captured image for analysis. The image data might be corrupt or too large."});
             setStatus("Image load failed.");
           };
           
-          // Clean the base64 string and ensure correct prefix
-          var cleanBase64 = base64.replace(/\s/g, "");
-          if (!cleanBase64.startsWith("data:")) {
-            cleanBase64 = "data:image/jpeg;base64," + cleanBase64;
-          }
-          img.src = cleanBase64;
+          imageNode.src = "data:image/jpeg;base64," + cleanBase64;
         }).catch(function(err) {
           sendToRN({ok:false, faceDetected:false, message:"Model load error: " + (err.message||"Could not load emotion model.")});
           setStatus("Could not load model.");

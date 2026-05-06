@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, Pressable, ActivityIndicator, BackHandler, Image, Platform, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Camera, CameraType, useCameraPermissions } from 'expo-camera';
 import { PlatformWebView } from '../components/WebViewPlatform';
 import styles from '../styles/globalStyles';
 import { EMOTION_EMOJI_MAP, FEEDBACK_CONFIG } from '../constants/emotions';
@@ -41,26 +41,37 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
     ? { uri: `data:image/jpeg;base64,${capturedBase64}` }
     : null;
 
+  const [cameraReady, setCameraReady] = useState(false);
+
   const handleCapture = async () => {
-    if (!cameraRef.current || capturing) {
+    if (!cameraRef.current || capturing || !cameraReady) {
+      if (!cameraReady) showAlert("Camera not ready", "Please wait a moment for the camera to initialize.");
       return;
     }
 
     try {
       setCapturing(true);
+      // Give the camera a tiny moment to focus/auto-expose
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
       const photo = await cameraRef.current.takePictureAsync({
         base64: true,
-        quality: 0.2,
+        quality: 0.5, // Reduced quality for better stability and faster analysis
         skipProcessing: false,
       });
 
-      if (photo?.base64) {
+      if (photo && photo.base64) {
+        // Validate base64 length to ensure it's not a 'blank' capture
+        if (photo.base64.length < 1000) {
+          throw new Error("Captured image data is too small (possibly corrupt).");
+        }
         setCapturedBase64(photo.base64);
       } else {
-        showAlert("Capture failed", "Could not capture the image as base64.");
+        throw new Error("No image data (base64) was returned by the camera.");
       }
-    } catch (_error) {
-      showAlert("Camera error", "Could not take the photo. Please try again.");
+    } catch (error) {
+      console.error("[CAPTURE-ERROR]", error);
+      showAlert("Capture failed", `Error: ${error.message || "Unknown camera error"}. Please try again.`);
     } finally {
       setCapturing(false);
     }
@@ -109,11 +120,6 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data.type === "ready") {
-        return;
-      }
-
-      if (data.type === "debug") {
-        console.log("[EMOTION_DEBUG]", data.message);
         return;
       }
 
@@ -231,10 +237,14 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
         {previewSource ? (
           <Image source={previewSource} style={styles.selfiePreviewImage} />
         ) : (
-          <CameraView
             ref={cameraRef}
             style={styles.selfieCamera}
-            facing="front"
+            type={CameraType.front}
+            onCameraReady={() => setCameraReady(true)}
+            onMountError={(err) => {
+              console.error("Camera mount error:", err);
+              showAlert("Camera Error", "Failed to start camera. Please check permissions.");
+            }}
           />
         )}
       </View>
