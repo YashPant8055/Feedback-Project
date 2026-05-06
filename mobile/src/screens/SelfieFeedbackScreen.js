@@ -41,37 +41,26 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
     ? { uri: `data:image/jpeg;base64,${capturedBase64}` }
     : null;
 
-  const [cameraReady, setCameraReady] = useState(false);
-
   const handleCapture = async () => {
-    if (!cameraRef.current || capturing || !cameraReady) {
-      if (!cameraReady) showAlert("Camera not ready", "Please wait a moment for the camera to initialize.");
+    if (!cameraRef.current || capturing) {
       return;
     }
 
     try {
       setCapturing(true);
-      // Give the camera a tiny moment to focus/auto-expose
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
       const photo = await cameraRef.current.takePictureAsync({
         base64: true,
-        quality: 0.5, // Reduced quality for better stability and faster analysis
+        quality: 0.78,
         skipProcessing: false,
       });
 
-      if (photo && photo.base64) {
-        // Validate base64 length to ensure it's not a 'blank' capture
-        if (photo.base64.length < 1000) {
-          throw new Error("Captured image data is too small (possibly corrupt).");
-        }
+      if (photo?.base64) {
         setCapturedBase64(photo.base64);
       } else {
-        throw new Error("No image data (base64) was returned by the camera.");
+        showAlert("Capture failed", "Could not capture the image as base64.");
       }
-    } catch (error) {
-      console.error("[CAPTURE-ERROR]", error);
-      showAlert("Capture failed", `Error: ${error.message || "Unknown camera error"}. Please try again.`);
+    } catch (_error) {
+      showAlert("Camera error", "Could not take the photo. Please try again.");
     } finally {
       setCapturing(false);
     }
@@ -241,11 +230,6 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
             ref={cameraRef}
             style={styles.selfieCamera}
             type={CameraType.front}
-            onCameraReady={() => setCameraReady(true)}
-            onMountError={(err) => {
-              console.error("Camera mount error:", err);
-              showAlert("Camera Error", "Failed to start camera. Please check permissions.");
-            }}
           />
         )}
       </View>

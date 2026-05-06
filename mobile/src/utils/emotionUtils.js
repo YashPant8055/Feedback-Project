@@ -68,18 +68,9 @@ export function getSelfieEmotionHtml(apiBaseUrl) {
       }
 
       function analyzeImage(base64) {
-        if (!base64) {
-          sendToRN({ok:false, faceDetected:false, message:"No image data received for analysis."});
-          return;
-        }
-
         setStatus("Loading emotion model...");
         loadModels().then(function() {
           setStatus("Analyzing expression...");
-          
-          // Clean the base64 string just in case
-          var cleanBase64 = base64.replace(/\s/g, "");
-          
           imageNode.onload = function() {
             faceapi.detectSingleFace(imageNode, new faceapi.TinyFaceDetectorOptions({inputSize:416, scoreThreshold:0.4}))
               .withFaceExpressions()
@@ -99,11 +90,10 @@ export function getSelfieEmotionHtml(apiBaseUrl) {
               });
           };
           imageNode.onerror = function() {
-            sendToRN({ok:false, faceDetected:false, message:"Failed to load the captured image for analysis. The image data might be corrupt or too large."});
+            sendToRN({ok:false, faceDetected:false, message:"Failed to load the captured image for analysis."});
             setStatus("Image load failed.");
           };
-          
-          imageNode.src = "data:image/jpeg;base64," + cleanBase64;
+          imageNode.src = "data:image/jpeg;base64," + base64;
         }).catch(function(err) {
           sendToRN({ok:false, faceDetected:false, message:"Model load error: " + (err.message||"Could not load emotion model.")});
           setStatus("Could not load model.");
