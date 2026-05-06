@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, Pressable, ActivityIndicator, BackHandler, Image, Platform, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Camera, CameraType, useCameraPermissions } from 'expo-camera';
+import * as ExpoCamera from 'expo-camera';
 import { PlatformWebView } from '../components/WebViewPlatform';
 import styles from '../styles/globalStyles';
 import { EMOTION_EMOJI_MAP, FEEDBACK_CONFIG } from '../constants/emotions';
@@ -12,8 +12,32 @@ import { showAlert } from '../utils/alertUtils';
 
 export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigateToAnimation, theme }) {
   const cameraRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const webViewRef = useRef(null);
-  const [permission, requestPermission] = useCameraPermissions();
+  
+  // Safe permission hook that doesn't crash on web
+  const nativePermissionHook = Platform.OS !== 'web' && ExpoCamera.useCameraPermissions ? ExpoCamera.useCameraPermissions : () => [null, null];
+  const [nativePermission, requestNativePermission] = nativePermissionHook();
+  const [webPermission, setWebPermission] = useState(false);
+  
+  const permission = Platform.OS === 'web' ? { granted: webPermission } : nativePermission;
+  const requestPermission = Platform.OS === 'web' ? async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      setWebPermission(true);
+      // Wait for the component to re-render and mount the video element
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      }, 100);
+    } catch (err) {
+      showAlert("Camera error", "Could not access web camera. Please check browser permissions.");
+    }
+  } : requestNativePermission;
+
   const [capturedBase64, setCapturedBase64] = useState("");
   const [capturing, setCapturing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -37,27 +61,48 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
     return () => subscription.remove();
   }, [onBack]);
 
+  // Clean up web camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (Platform.OS === 'web' && videoRef.current && videoRef.current.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
   const previewSource = capturedBase64
     ? { uri: `data:image/jpeg;base64,${capturedBase64}` }
     : null;
 
   const handleCapture = async () => {
-    if (!cameraRef.current || capturing) {
-      return;
-    }
+    if (capturing) return;
 
     try {
       setCapturing(true);
-      const photo = await cameraRef.current.takePictureAsync({
-        base64: true,
-        quality: 0.78,
-        skipProcessing: false,
-      });
-
-      if (photo?.base64) {
-        setCapturedBase64(photo.base64);
+      
+      if (Platform.OS === 'web') {
+        if (videoRef.current && canvasRef.current) {
+          const context = canvasRef.current.getContext('2d');
+          canvasRef.current.width = videoRef.current.videoWidth || 480;
+          canvasRef.current.height = videoRef.current.videoHeight || 640;
+          context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+          const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.8);
+          // Remove the "data:image/jpeg;base64," prefix for consistency
+          setCapturedBase64(dataUrl.split(',')[1]);
+        }
       } else {
-        showAlert("Capture failed", "Could not capture the image as base64.");
+        if (!cameraRef.current) return;
+        const photo = await cameraRef.current.takePictureAsync({
+          base64: true,
+          quality: 0.78,
+          skipProcessing: false,
+        });
+
+        if (photo?.base64) {
+          setCapturedBase64(photo.base64);
+        } else {
+          showAlert("Capture failed", "Could not capture the image as base64.");
+        }
       }
     } catch (_error) {
       showAlert("Camera error", "Could not take the photo. Please try again.");
@@ -226,11 +271,23 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
         {previewSource ? (
           <Image source={previewSource} style={styles.selfiePreviewImage} />
         ) : (
-          <Camera
-            ref={cameraRef}
-            style={styles.selfieCamera}
-            type={CameraType.front}
-          />
+          Platform.OS === 'web' ? (
+            <>
+              <video
+                ref={videoRef}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+                playsInline
+                autoPlay
+              />
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
+            </>
+          ) : (
+            <ExpoCamera.Camera
+              ref={cameraRef}
+              style={styles.selfieCamera}
+              type={ExpoCamera.CameraType.front}
+            />
+          )
         )}
       </View>
 
