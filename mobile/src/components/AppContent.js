@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ActivityIndicator, useColorScheme } from 'react-native';
+import { View, Text, ActivityIndicator, useColorScheme, Platform } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL, SESSION_STORAGE_KEY, ACTIVE_ROOM_STORAGE_KEY } from "../constants/config";
 import { DEFAULT_THEME_SETTINGS, THEME_SETTINGS_STORAGE_KEY, STORY_MODE_STORAGE_KEY } from "../constants/themeConstants";
@@ -117,8 +117,13 @@ export default function AppContent() {
         setProfile(parsedSession ?? null);
         setActiveRoom(validatedActiveRoom);
         
+        // Web Routing Check
+        const isWebPrivacyRoute = Platform.OS === "web" && window?.location?.pathname === "/privacy";
+
         // Decide initial screen based on role
-        if (!parsedSession) {
+        if (isWebPrivacyRoute) {
+          setScreen("privacy");
+        } else if (!parsedSession) {
           setScreen("auth");
         } else if (parsedSession.role === "admin") {
           setScreen("admin");
@@ -158,7 +163,11 @@ export default function AppContent() {
       } catch (error) {
         if (mounted) {
           setProfile(null);
-          setScreen("auth");
+          if (Platform.OS === "web" && window?.location?.pathname === "/privacy") {
+            setScreen("privacy");
+          } else {
+            setScreen("auth");
+          }
           setTheme((current) => getRandomTheme(current?.name));
         }
       } finally {
@@ -616,7 +625,11 @@ export default function AppContent() {
     return (
       <PrivacyPolicyScreen
         onBack={() => {
-          if (profile?.role === "admin") setScreen("admin");
+          if (Platform.OS === 'web' && window?.history) {
+            window.history.pushState({}, '', '/');
+          }
+          if (!profile) setScreen("auth");
+          else if (profile?.role === "admin") setScreen("admin");
           else if (profile?.role === "teacher") setScreen("teacher");
           else setScreen("dashboard");
         }}
@@ -668,7 +681,12 @@ export default function AppContent() {
         theme={displayTheme}
         onLogout={handleLogout}
         onViewClips={() => setScreen("myClips")}
-        onViewPrivacy={() => setScreen("privacy")}
+        onViewPrivacy={() => {
+          if (Platform.OS === 'web' && window?.history) {
+            window.history.pushState({}, '', '/privacy');
+          }
+          setScreen("privacy");
+        }}
         themeSettings={themeSettings}
         onThemeSettingsChange={handleThemeSettingsChange}
       />
@@ -783,7 +801,12 @@ export default function AppContent() {
           setScreen("editRoom");
         }}
         onViewClips={() => setScreen("myClips")}
-        onViewPrivacy={() => setScreen("privacy")}
+        onViewPrivacy={() => {
+          if (Platform.OS === 'web' && window?.history) {
+            window.history.pushState({}, '', '/privacy');
+          }
+          setScreen("privacy");
+        }}
         onRemoveRoomHistory={handleRemoveTeacherRoomHistory}
         onRefreshProfile={handleRefreshProfile}
         themeSettings={themeSettings}
@@ -813,7 +836,12 @@ export default function AppContent() {
       activeRoom={activeRoom}
       onJoinRoom={handleJoinRoom}
       onLeaveRoom={handleLeaveRoom}
-      onViewPrivacy={() => setScreen("privacy")}
+      onViewPrivacy={() => {
+          if (Platform.OS === 'web' && window?.history) {
+            window.history.pushState({}, '', '/privacy');
+          }
+          setScreen("privacy");
+        }}
       joiningRoom={joiningRoom}
       onLogout={handleLogout}
       onOpenStoryMode={handleOpenStoryMode}
