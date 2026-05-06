@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, Pressable, ActivityIndicator, BackHandler, Image, Platform, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Camera, CameraType, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { PlatformWebView } from '../components/WebViewPlatform';
 import styles from '../styles/globalStyles';
 import { EMOTION_EMOJI_MAP, FEEDBACK_CONFIG } from '../constants/emotions';
@@ -226,10 +226,10 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
         {previewSource ? (
           <Image source={previewSource} style={styles.selfiePreviewImage} />
         ) : (
-          <Camera
+          <CameraView
             ref={cameraRef}
             style={styles.selfieCamera}
-            type={CameraType.front}
+            facing="front"
           />
         )}
       </View>
