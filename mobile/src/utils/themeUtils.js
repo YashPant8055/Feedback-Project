@@ -37,23 +37,21 @@ export function getResolvedAppearanceMode(appearanceMode, systemScheme) {
 
 export function getDisplayTheme(baseTheme, appearanceMode) {
   if (appearanceMode === "light") {
-    // For light mode, we want to ensure accent/secondary have enough contrast
-    const isVeryLight = (hex) => {
-      const clean = hex.replace("#", "");
-      const r = parseInt(clean.substring(0, 2), 16);
-      const g = parseInt(clean.substring(2, 4), 16);
-      const b = parseInt(clean.substring(4, 6), 16);
-      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-      return brightness > 200; // Very bright
-    };
-
+    // For light mode, we must guarantee that the accent colors are readable against a white background.
+    // If the color is too bright, we darken it significantly.
     const contrastColor = (hex) => {
-      if (!isVeryLight(hex)) return hex;
-      // Darken slightly for better contrast on white
       const clean = hex.replace("#", "");
-      let r = Math.max(0, parseInt(clean.substring(0, 2), 16) - 40);
-      let g = Math.max(0, parseInt(clean.substring(2, 4), 16) - 40);
-      let b = Math.max(0, parseInt(clean.substring(4, 6), 16) - 40);
+      let r = parseInt(clean.substring(0, 2), 16);
+      let g = parseInt(clean.substring(2, 4), 16);
+      let b = parseInt(clean.substring(4, 6), 16);
+      
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      if (brightness > 140) {
+        // Scale down RGB to darken the color by 45% to ensure it pops on white
+        r = Math.floor(r * 0.55);
+        g = Math.floor(g * 0.55);
+        b = Math.floor(b * 0.55);
+      }
       return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     };
 
@@ -66,32 +64,34 @@ export function getDisplayTheme(baseTheme, appearanceMode) {
       secondary: lightSecondary,
       background: "#f8fafc", // Softer slate-white
       panel: "#ffffff",
-      textPrimary: "#0f172a", // Very dark slate
-      textSecondary: "#475569", // Slate 600
-      textMuted: "#64748b", // Slate 500
-      cardBorder: "rgba(15, 23, 42, 0.08)",
-      inputBackground: "rgba(15, 23, 42, 0.04)",
-      inputBorder: "rgba(15, 23, 42, 0.12)",
+      textPrimary: "#0f172a", // Very dark slate (high contrast)
+      textSecondary: "#334155", // Slate 700 (high contrast)
+      textMuted: "#475569", // Slate 600 (better contrast than 500)
+      cardBorder: "rgba(15, 23, 42, 0.12)",
+      inputBackground: "rgba(15, 23, 42, 0.05)",
+      inputBorder: "rgba(15, 23, 42, 0.15)",
       inputText: "#0f172a",
-      noteText: "#64748b",
+      noteText: "#475569",
       onAccent: "#ffffff",
       onSecondary: "#ffffff",
-      glowOne: hexToRgba(lightAccent, 0.12),
-      glowTwo: hexToRgba(lightSecondary, 0.08),
-      accentSoft: hexToRgba(lightAccent, 0.1),
+      glowOne: hexToRgba(lightAccent, 0.15),
+      glowTwo: hexToRgba(lightSecondary, 0.12),
+      accentSoft: hexToRgba(lightAccent, 0.12),
     };
   }
 
+  // Dark Mode guarantees
   return {
     ...baseTheme,
-    textPrimary: "#f1f5f9",
-    textSecondary: "#cbd5e1",
-    cardBorder: "rgba(255,255,255,0.06)",
-    inputBackground: "rgba(255, 255, 255, 0.06)",
-    inputBorder: "rgba(143, 200, 255, 0.18)",
-    inputText: "#f1f5f9",
+    textPrimary: "#ffffff", // Pure white for max readability
+    textSecondary: "#e2e8f0", // Very bright slate
+    textMuted: "#cbd5e1", // Bright slate for readable subtext
+    cardBorder: "rgba(255,255,255,0.08)",
+    inputBackground: "rgba(255, 255, 255, 0.08)",
+    inputBorder: "rgba(255, 255, 255, 0.15)",
+    inputText: "#ffffff",
     noteText: "#94a3b8",
-    onAccent: "#ffffff",
+    onAccent: "#ffffff", // Ensure text inside accent buttons is white
     onSecondary: "#ffffff",
   };
 }
