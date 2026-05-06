@@ -115,7 +115,7 @@ export default function PrivacyPolicyScreen({ onBack, theme }) {
         </Section>
 
         <Text style={[localStyles.footerText, { color: theme.textMuted }]}>
-          © 2025 CodroidHub. All rights reserved.
+          © 2026 CodroidHub. All rights reserved.
         </Text>
       </ScrollView>
     </View>
