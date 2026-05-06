@@ -47,55 +47,57 @@ export default function PrivacyPolicyScreen({ onBack, theme }) {
             <Text style={[localStyles.badgeText, { color: theme.accent }]}>🛡️ Privacy & Security</Text>
           </View>
           <Text style={[localStyles.mainTitle, { color: theme.textPrimary }]}>Our Commitment to Privacy</Text>
-          <Text style={[localStyles.lastUpdated, { color: theme.textMuted }]}>Last Updated: January 8, 2025</Text>
+          <Text style={[localStyles.lastUpdated, { color: theme.textMuted }]}>Last Updated: May 6, 2026</Text>
         </View>
 
         <Text style={[localStyles.introText, { color: theme.textMuted }]}>
-          At CodroidHub, we believe that privacy is a fundamental right. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our educational services.
+          At CodroidHub, we believe that privacy is a fundamental right. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our interactive Feedback application and Room services.
         </Text>
 
         <Section title="Information We Collect" icon="📊">
           <Text style={[localStyles.subTitle, { color: theme.textPrimary }]}>Personal Information</Text>
-          <BulletPoint text="Name, email address, and contact information" />
-          <BulletPoint text="Educational background and learning preferences" />
-          <BulletPoint text="Profile picture and bio (optional)" />
+          <BulletPoint text="Name, email address, and account role (Teacher/Student)" />
+          <BulletPoint text="Room codes, session history, and participation data" />
+          <BulletPoint text="Feedback responses (Emoji, Written, and Story Mode choices)" />
+          <BulletPoint text="Facial expression data for emotion analysis (only when using Selfie Feedback)" />
           
           <Text style={[localStyles.subTitle, { color: theme.textPrimary, marginTop: 15 }]}>Technical Information</Text>
-          <BulletPoint text="IP address and device information" />
-          <BulletPoint text="Browser type and operating system" />
-          <BulletPoint text="Cookies and tracking technologies" />
+          <BulletPoint text="Device information and operating system" />
+          <BulletPoint text="App performance and crash logs" />
+          <BulletPoint text="Usage patterns within rooms and stories" />
         </Section>
 
         <Section title="How We Use Your Information" icon="👁️">
-          <Text style={[localStyles.subTitle, { color: theme.textPrimary }]}>Educational Services</Text>
-          <BulletPoint text="Provide personalized learning experiences" />
-          <BulletPoint text="Track your progress and achievements" />
-          <BulletPoint text="Recommend relevant courses and content" />
+          <Text style={[localStyles.subTitle, { color: theme.textPrimary }]}>App Services</Text>
+          <BulletPoint text="Facilitate live classroom feedback sessions" />
+          <BulletPoint text="Analyze emotional sentiment to generate teacher reports" />
+          <BulletPoint text="Process camera input locally for Selfie Feedback analysis" />
+          <BulletPoint text="Provide interactive Story Mode experiences" />
           
           <Text style={[localStyles.subTitle, { color: theme.textPrimary, marginTop: 15 }]}>Communication</Text>
-          <BulletPoint text="Send course updates and announcements" />
-          <BulletPoint text="Provide customer support" />
-          <BulletPoint text="Process enrollment and payment confirmations" />
+          <BulletPoint text="Send account notifications and room updates" />
+          <BulletPoint text="Provide technical customer support" />
+          <BulletPoint text="Process feedback submissions and room creations" />
         </Section>
 
         <Section title="Data Protection & Security" icon="🔐">
           <BulletPoint text="Industry-standard encryption for data transmission" />
+          <BulletPoint text="Facial images from Selfie Feedback are NOT stored permanently" />
           <BulletPoint text="Secure servers with regular security audits" />
-          <BulletPoint text="Multi-factor authentication options" />
-          <BulletPoint text="Active account data retained while you use our services" />
+          <BulletPoint text="Session feedback and room history kept securely until deleted by the user" />
         </Section>
 
         <Section title="Third-Party Services" icon="🌐">
           <Text style={[localStyles.bodyText, { color: theme.textMuted }]}>
-            We may use third-party services to enhance your learning experience, including Google Analytics for usage insights and secure payment processors like Stripe.
+            We may use trusted third-party services to enhance your experience, including secure cloud hosting for our servers and databases, and push notification services to keep you updated on active rooms.
           </Text>
         </Section>
 
         <Section title="Your Rights & Choices" icon="🛡️">
-          <BulletPoint text="Access, update, or delete your personal information" />
-          <BulletPoint text="Download your data in a portable format" />
-          <BulletPoint text="Opt out of marketing communications" />
-          <BulletPoint text="Manage cookie settings in your browser" />
+          <BulletPoint text="Access, update, or delete your account information" />
+          <BulletPoint text="Delete your submitted feedback from the My Feedback history" />
+          <BulletPoint text="Teachers can permanently delete rooms and all associated data" />
+          <BulletPoint text="Revoke camera permissions at any time via device settings" />
         </Section>
 
         <Section title="Contact Us" icon="📧">
