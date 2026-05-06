@@ -50,7 +50,7 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
       setCapturing(true);
       const photo = await cameraRef.current.takePictureAsync({
         base64: true,
-        quality: 0.5,
+        quality: 0.2,
         skipProcessing: false,
       });
 
@@ -109,6 +109,11 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data.type === "ready") {
+        return;
+      }
+
+      if (data.type === "debug") {
+        console.log("[EMOTION_DEBUG]", data.message);
         return;
       }
 

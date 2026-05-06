@@ -68,11 +68,18 @@ export function getSelfieEmotionHtml(apiBaseUrl) {
       }
 
       function analyzeImage(base64) {
+        var startInfo = base64.substring(0, 30);
+        var len = base64.length;
+        sendToRN({type:"debug", message: "Received base64. Length: " + len + ", Start: " + startInfo});
+
         setStatus("Loading emotion model...");
         loadModels().then(function() {
           setStatus("Analyzing expression...");
-          imageNode.onload = function() {
-            faceapi.detectSingleFace(imageNode, new faceapi.TinyFaceDetectorOptions({inputSize:416, scoreThreshold:0.4}))
+          
+          var img = new Image();
+          img.onload = function() {
+            sendToRN({type:"debug", message: "Image loaded into memory successfully. Size: " + img.width + "x" + img.height});
+            faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({inputSize:416, scoreThreshold:0.4}))
               .withFaceExpressions()
               .then(function(result) {
                 if(!result) {
@@ -89,8 +96,8 @@ export function getSelfieEmotionHtml(apiBaseUrl) {
                 setStatus("Analysis failed.");
               });
           };
-          imageNode.onerror = function() {
-            sendToRN({ok:false, faceDetected:false, message:"Failed to load the captured image for analysis."});
+          img.onerror = function() {
+            sendToRN({ok:false, faceDetected:false, message: "Failed to load captured image. Length: " + len + ", Start: " + startInfo});
             setStatus("Image load failed.");
           };
           
@@ -99,7 +106,7 @@ export function getSelfieEmotionHtml(apiBaseUrl) {
           if (!cleanBase64.startsWith("data:")) {
             cleanBase64 = "data:image/jpeg;base64," + cleanBase64;
           }
-          imageNode.src = cleanBase64;
+          img.src = cleanBase64;
         }).catch(function(err) {
           sendToRN({ok:false, faceDetected:false, message:"Model load error: " + (err.message||"Could not load emotion model.")});
           setStatus("Could not load model.");
