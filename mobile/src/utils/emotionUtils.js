@@ -93,7 +93,13 @@ export function getSelfieEmotionHtml(apiBaseUrl) {
             sendToRN({ok:false, faceDetected:false, message:"Failed to load the captured image for analysis."});
             setStatus("Image load failed.");
           };
-          imageNode.src = "data:image/jpeg;base64," + base64;
+          
+          // Clean the base64 string and ensure correct prefix
+          var cleanBase64 = base64.replace(/\s/g, "");
+          if (!cleanBase64.startsWith("data:")) {
+            cleanBase64 = "data:image/jpeg;base64," + cleanBase64;
+          }
+          imageNode.src = cleanBase64;
         }).catch(function(err) {
           sendToRN({ok:false, faceDetected:false, message:"Model load error: " + (err.message||"Could not load emotion model.")});
           setStatus("Could not load model.");

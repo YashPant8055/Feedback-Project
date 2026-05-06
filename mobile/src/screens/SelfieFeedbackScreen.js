@@ -50,7 +50,7 @@ export default function SelfieFeedbackScreen({ onBack, onSaveFeedback, onNavigat
       setCapturing(true);
       const photo = await cameraRef.current.takePictureAsync({
         base64: true,
-        quality: 0.78,
+        quality: 0.5,
         skipProcessing: false,
       });
 
