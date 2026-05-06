@@ -17,6 +17,7 @@ import RoomFormScreen from '../screens/RoomFormScreen';
 import RoomDetailScreen from '../screens/RoomDetailScreen';
 import StudentRoomDetailScreen from '../screens/StudentRoomDetailScreen';
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import WelcomeAnimation from './WelcomeAnimation';
 import styles from "../styles/globalStyles";
 import { getSocket } from '../utils/socket';
@@ -611,6 +612,19 @@ export default function AppContent() {
     );
   }
 
+  if (screen === "privacy") {
+    return (
+      <PrivacyPolicyScreen
+        onBack={() => {
+          if (profile?.role === "admin") setScreen("admin");
+          else if (profile?.role === "teacher") setScreen("teacher");
+          else setScreen("dashboard");
+        }}
+        theme={displayTheme}
+      />
+    );
+  }
+
   if (screen === "animation" && animationReview) {
     return (
       <FeedbackAnimationScreen
@@ -654,6 +668,7 @@ export default function AppContent() {
         theme={displayTheme}
         onLogout={handleLogout}
         onViewClips={() => setScreen("myClips")}
+        onViewPrivacy={() => setScreen("privacy")}
         themeSettings={themeSettings}
         onThemeSettingsChange={handleThemeSettingsChange}
       />
@@ -768,6 +783,7 @@ export default function AppContent() {
           setScreen("editRoom");
         }}
         onViewClips={() => setScreen("myClips")}
+        onViewPrivacy={() => setScreen("privacy")}
         onRemoveRoomHistory={handleRemoveTeacherRoomHistory}
         onRefreshProfile={handleRefreshProfile}
         themeSettings={themeSettings}
@@ -797,6 +813,7 @@ export default function AppContent() {
       activeRoom={activeRoom}
       onJoinRoom={handleJoinRoom}
       onLeaveRoom={handleLeaveRoom}
+      onViewPrivacy={() => setScreen("privacy")}
       joiningRoom={joiningRoom}
       onLogout={handleLogout}
       onOpenStoryMode={handleOpenStoryMode}

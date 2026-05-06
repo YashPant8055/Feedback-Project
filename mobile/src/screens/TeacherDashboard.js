@@ -37,6 +37,7 @@ export default function TeacherDashboard({
   onThemeSettingsChange,
   onEditRoom,
   onViewClips,
+  onViewPrivacy,
   onRemoveRoomHistory,
   onRefreshProfile,
   theme,
@@ -793,6 +794,14 @@ export default function TeacherDashboard({
 
         {/* Footer Branding */}
         <View style={localStyles.footerBranding}>
+          <Pressable 
+            style={{ marginBottom: 16 }} 
+            onPress={onViewPrivacy}
+          >
+            <Text style={{ fontSize: 13, fontWeight: "600", color: theme.accent, textDecorationLine: "underline" }}>
+              Privacy Policy
+            </Text>
+          </Pressable>
           <Text style={[localStyles.builtBy, { color: theme.textMuted }]}>Built by</Text>
           <View style={localStyles.brandingContainer}>
              <LinearGradient 

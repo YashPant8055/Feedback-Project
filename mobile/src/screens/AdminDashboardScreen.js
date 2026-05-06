@@ -31,7 +31,8 @@ export default function AdminDashboardScreen({
   onLogout, 
   themeSettings,
   onThemeSettingsChange,
-  onViewClips
+  onViewClips,
+  onViewPrivacy
 }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -467,6 +468,9 @@ export default function AdminDashboardScreen({
                     </Pressable>
                   ))}
                </View>
+                <Pressable style={[s.logoutMenuBtn, { backgroundColor: colors.input, overflow: 'hidden', marginTop: 10 }]} onPress={() => {setIsMenuOpen(false); onViewPrivacy();}}>
+                  <Text style={[s.logoutMenuText, { color: colors.text }]}>PRIVACY POLICY</Text>
+               </Pressable>
                <Pressable style={[s.logoutMenuBtn, { overflow: 'hidden' }]} onPress={() => {setIsMenuOpen(false); onLogout();}}>
                   <LinearGradient colors={colors.mix} style={StyleSheet.absoluteFill} start={{x:0, y:0}} end={{x:1, y:0}} />
                   <Text style={s.logoutMenuText}>LOGOUT</Text>
