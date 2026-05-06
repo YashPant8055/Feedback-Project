@@ -924,10 +924,10 @@ export default function DashboardScreen({
 
         <View style={localStyles.footerBranding}>
           <Pressable 
-            style={{ marginBottom: 16 }} 
+            style={{ marginBottom: 24, paddingVertical: 10, paddingHorizontal: 20, backgroundColor: theme.inputBackground, borderRadius: 20, borderWidth: 1, borderColor: theme.inputBorder }} 
             onPress={onViewPrivacy}
           >
-            <Text style={{ fontSize: 13, fontWeight: "600", color: theme.accent, textDecorationLine: "underline" }}>
+            <Text style={{ fontSize: 13, fontWeight: "800", color: theme.textPrimary, letterSpacing: 0.5 }}>
               Privacy Policy
             </Text>
           </Pressable>
