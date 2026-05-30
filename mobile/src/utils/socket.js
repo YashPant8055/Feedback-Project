@@ -3,10 +3,19 @@ import { API_BASE_URL } from "../constants/config";
 
 let socket = null;
 
+const getSocketUrl = () => {
+  try {
+    const parsed = new URL(API_BASE_URL);
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return API_BASE_URL;
+  }
+};
+
 export const initSocket = () => {
   if (!socket) {
-    socket = io(API_BASE_URL, {
-      transports: ["websocket"],
+    socket = io(getSocketUrl(), {
+      transports: ["websocket", "polling"],
       reconnectionAttempts: 10,
     });
 

@@ -36,6 +36,11 @@ const teacherSchema = new mongoose.Schema(
         },
       },
     },
+    role: {
+      type: String,
+      enum: ["teacher", "admin"],
+      default: "teacher",
+    },
     rooms: [
       {
         roomCode: String,
@@ -55,6 +60,25 @@ const teacherSchema = new mongoose.Schema(
     profileImage: {
       type: String,
       default: "",
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      codeHash: {
+        type: String,
+        default: "",
+      },
+      purpose: {
+        type: String,
+        enum: ["email-verification", "password-reset", "login", ""],
+        default: "",
+      },
+      expiresAt: {
+        type: Date,
+        default: null,
+      },
     },
     status: {
       type: String,

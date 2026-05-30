@@ -121,6 +121,25 @@ const studentSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      codeHash: {
+        type: String,
+        default: "",
+      },
+      purpose: {
+        type: String,
+        enum: ["email-verification", "password-reset", "login", ""],
+        default: "",
+      },
+      expiresAt: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   {
     timestamps: true,

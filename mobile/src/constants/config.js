@@ -4,7 +4,7 @@ export const SESSION_STORAGE_KEY = "storyverse-session";
 export const ACTIVE_ROOM_STORAGE_KEY = "active-room-session";
 
 const DEFAULT_API_PORT = 4000;
-const WEB_FALLBACK_API_URL = `http://localhost:${DEFAULT_API_PORT}`;
+const WEB_FALLBACK_API_URL = "http://localhost:4000";
 
 let hasWarnedAboutMissingApiUrl = false;
 
@@ -46,15 +46,8 @@ export function getApiBaseUrl() {
     return envUrl;
   }
 
-  const metroHostApiUrl = normalizeUrl(getMetroHostApiUrl());
-  if (metroHostApiUrl) {
-    return metroHostApiUrl;
-  }
-
-  const fallbackUrl =
-    Platform.OS === "web" ? WEB_FALLBACK_API_URL : WEB_FALLBACK_API_URL;
-  warnMissingApiUrl(fallbackUrl);
-  return fallbackUrl;
+  warnMissingApiUrl(WEB_FALLBACK_API_URL);
+  return WEB_FALLBACK_API_URL;
 }
 
 export const API_BASE_URL = getApiBaseUrl();

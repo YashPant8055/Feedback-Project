@@ -9,12 +9,12 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://feedback-server-bfav.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://feedbackyantra.devarshinnovations.com/api"
       }
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://feedback-server-bfav.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://feedbackyantra.devarshinnovations.com/api"
       }
     }
   }

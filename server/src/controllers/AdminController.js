@@ -1,4 +1,3 @@
-const Admin = require("../models/Admin");
 const Student = require("../models/Student");
 const Teacher = require("../models/Teacher");
 const Room = require("../models/Room");
@@ -14,7 +13,7 @@ exports.getStats = async (req, res) => {
     const activeRooms = await Room.countDocuments({ status: "active" });
 
     const start = Date.now();
-    await Admin.findOne(); // Small query to check latency
+    await Student.findOne(); // Small query to check latency
     const latency = Date.now() - start;
 
     // Efficiency: 100% if under 50ms, drops as latency increases
@@ -60,7 +59,7 @@ exports.getAllUsers = async (req, res) => {
       const teachers = await Teacher.find().select("-password").lean();
       users = [...users, ...teachers.map(t => ({
         ...t,
-        role: 'teacher',
+        role: t.role || 'teacher',
         roomCount: t.rooms ? t.rooms.length : 0
       }))];
     }
@@ -86,6 +85,35 @@ exports.approveTeacher = async (req, res) => {
     await teacher.save();
 
     res.json({ success: true, message: "Teacher approved successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// PATCH /api/admin/users/:id/role
+exports.updateUserRole = async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!role || !["teacher", "admin"].includes(role)) {
+      return res.status(400).json({ success: false, message: "Role must be 'teacher' or 'admin'" });
+    }
+
+    let user = await Student.findById(req.params.id);
+    if (user) {
+      return res.status(400).json({ success: false, message: "Cannot change student role" });
+    }
+
+    user = await Teacher.findByIdAndUpdate(
+      req.params.id,
+      { $set: { role } },
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, message: `Role updated to ${role}`, user });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

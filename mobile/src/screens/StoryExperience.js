@@ -15,6 +15,7 @@ export default function StoryExperience({
   onSaveFeedback,
   initialStoryId = "story1",
   autoStartToken = 0,
+  theme,
 }) {
     const { width, height } = useWindowDimensions();
     const [phase, setPhase] = useState("idle");
@@ -296,19 +297,19 @@ export default function StoryExperience({
 
   if (loadingStory) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#4fd1ff" />
-        <Text style={{ marginTop: 12, color: '#fff' }}>Loading Story Clips...</Text>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme?.background }]}>
+        <ActivityIndicator size="large" color={theme?.accent || '#4fd1ff'} />
+        <Text style={{ marginTop: 12, color: theme?.textPrimary || '#fff' }}>Loading Story Clips...</Text>
       </View>
     );
   }
 
   if (!storyData || !activeClips) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: '#fff' }}>Story not found</Text>
-        <Pressable onPress={onBack} style={{ marginTop: 20, padding: 10, backgroundColor: '#4fd1ff', borderRadius: 8 }}>
-          <Text>Back</Text>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme?.background }]}>
+        <Text style={{ color: theme?.textPrimary || '#fff' }}>Story not found</Text>
+        <Pressable onPress={onBack} style={{ marginTop: 20, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: theme?.accent || '#4fd1ff', borderRadius: 8 }}>
+          <Text style={{ color: theme?.onAccent || '#fff' }}>Back</Text>
         </Pressable>
       </View>
     );
@@ -318,9 +319,10 @@ export default function StoryExperience({
     currentQuestionIndex >= 0 ? activeQuestionsList[currentQuestionIndex] : null;
   const clipResizeMode = ResizeMode.COVER;
 
+  const t = theme || {};
   return (
-    <View style={styles.container}>
-      <View style={styles.stage}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
+      <View style={[styles.stage, { backgroundColor: t.background }]}>
         {(phase === "main" ||
           phase === "idle" ||
           phase === "questions" ||
@@ -357,12 +359,12 @@ export default function StoryExperience({
         </View>
 
         {storyMenuOpen && (
-          <View style={[styles.storyActionMenu, { top: Math.max(insets.top + 66, 72) }]}>
-            <Text style={styles.storyActionMenuTitle}>Story Controls</Text>
+          <View style={[styles.storyActionMenu, { top: Math.max(insets.top + 66, 72), backgroundColor: t.panel || "rgba(8, 15, 31, 0.92)" }]}>
+            <Text style={[styles.storyActionMenuTitle, { color: t.textMuted }]}>Story Controls</Text>
             <Pressable style={styles.storyActionMenuItem} onPress={handleSkipStory}>
               <View>
-                <Text style={styles.storyActionMenuItemTitle}>Skip</Text>
-                <Text style={styles.storyActionMenuItemSubtext}>
+                <Text style={[styles.storyActionMenuItemTitle, { color: t.textPrimary }]}>Skip</Text>
+                <Text style={[styles.storyActionMenuItemSubtext, { color: t.textMuted }]}>
                   Jump to the next part of this story
                 </Text>
               </View>
@@ -372,8 +374,8 @@ export default function StoryExperience({
               onPress={handleQuitStory}
             >
               <View>
-                <Text style={styles.storyActionMenuDangerTitle}>Quit</Text>
-                <Text style={styles.storyActionMenuItemSubtext}>
+                <Text style={[styles.storyActionMenuDangerTitle, { color: t.textPrimary }]}>Quit</Text>
+                <Text style={[styles.storyActionMenuItemSubtext, { color: t.textMuted }]}>
                   Leave Story Mode and return to dashboard
                 </Text>
               </View>
@@ -388,17 +390,17 @@ export default function StoryExperience({
             style={[
               styles.panel,
               (phase === "questions" || phase === "final_result") ? styles.panelFloating : styles.panelDocked,
-              { paddingBottom: 18 },
+              { paddingBottom: 18, backgroundColor: t.panel || "rgba(9, 19, 36, 0.62)" },
             ]}
           >
             {phase === "idle" && (
               <>
-                <Text style={styles.kicker}>Interactive Session</Text>
-                <Text style={styles.title}>Session Question</Text>
-                <Text style={[styles.subtitle, { color: '#59f0c2', fontWeight: '900', fontSize: 18 }]}>
+                <Text style={[styles.kicker, { color: t.accent }]}>Interactive Session</Text>
+                <Text style={[styles.title, { color: t.textPrimary }]}>Session Question</Text>
+                <Text style={[styles.subtitle, { color: t.accent || '#59f0c2', fontWeight: '900', fontSize: 18 }]}>
                   "{activeRoom?.question || "How was the session?"}"
                 </Text>
-                <Text style={styles.subtitle}>
+                <Text style={[styles.subtitle, { color: t.textSecondary }]}>
                   Watch the story and answer the live questions based on your experience today.
                 </Text>
                 <View style={styles.storyRow}>
@@ -436,19 +438,19 @@ export default function StoryExperience({
                   </Pressable>
                 </View>
                 <Pressable
-                  style={styles.primaryButton}
+                  style={[styles.primaryButton, { backgroundColor: t.accent }]}
                   onPress={() => setPhase("main")}
                 >
-                  <Text style={styles.primaryButtonText}>Start Story</Text>
+                  <Text style={[styles.primaryButtonText, { color: t.onAccent || '#fff' }]}>Start Story</Text>
                 </Pressable>
               </>
             )}
 
             {phase === "main" && (
               <>
-                <Text style={styles.kicker}>Session Question</Text>
-                <Text style={[styles.title, { fontSize: 20 }]}>"{activeRoom?.question || "How was the session?"}"</Text>
-                <Text style={styles.subtitle}>
+                <Text style={[styles.kicker, { color: t.accent }]}>Session Question</Text>
+                <Text style={[styles.title, { color: t.textPrimary, fontSize: 20 }]}>"{activeRoom?.question || "How was the session?"}"</Text>
+                <Text style={[styles.subtitle, { color: t.textSecondary }]}>
                   Think about the question above as you watch. Feedback will appear shortly.
                 </Text>
               </>
@@ -456,9 +458,9 @@ export default function StoryExperience({
 
             {phase === "outcome" && (
               <>
-                <Text style={styles.kicker}>Story Conclusion</Text>
-                <Text style={styles.title}>The Ending</Text>
-                <Text style={styles.subtitle}>
+                <Text style={[styles.kicker, { color: t.accent }]}>Story Conclusion</Text>
+                <Text style={[styles.title, { color: t.textPrimary }]}>The Ending</Text>
+                <Text style={[styles.subtitle, { color: t.textSecondary }]}>
                   Watching the {outcome} outcome. Your feedback score led to this specific scene.
                 </Text>
               </>
@@ -466,18 +468,18 @@ export default function StoryExperience({
 
             {phase === "questions" && activeQuestion && (
               <>
-                <Text style={styles.kicker}>
+                <Text style={[styles.kicker, { color: t.accent }]}>
                   Question {currentQuestionIndex + 1} of {activeQuestionsList.length}
                 </Text>
-                <Text style={styles.title}>{activeQuestion.text}</Text>
+                <Text style={[styles.title, { color: t.textPrimary }]}>{activeQuestion.text}</Text>
                 <View style={styles.optionList}>
                   {activeQuestion.options.map((option) => (
                     <Pressable
                       key={option.label}
-                      style={styles.optionButton}
+                      style={[styles.optionButton, { backgroundColor: t.inputBackground, borderColor: t.inputBorder }]}
                       onPress={() => handleAnswer(activeQuestion.id, option.score)}
                     >
-                      <Text style={styles.optionText}>{option.label}</Text>
+                      <Text style={[styles.optionText, { color: t.textPrimary }]}>{option.label}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -486,20 +488,20 @@ export default function StoryExperience({
 
             {phase === "final_result" && (
               <>
-                <Text style={styles.kicker}>Story Ending</Text>
-                <Text style={styles.title}>
+                <Text style={[styles.kicker, { color: t.accent }]}>Story Ending</Text>
+                <Text style={[styles.title, { color: t.textPrimary }]}>
                   {outcome === "good" ? "😊 Great Ending!" : outcome === "average" ? "😐 Okay Ending!" : "😞 Low Ending!"}
                 </Text>
-                <Text style={styles.subtitle}>
+                <Text style={[styles.subtitle, { color: t.textSecondary }]}>
                   You scored {activeQuestionsList.reduce((sum, q) => sum + (answers[q.id] ?? 0), 0)} out of {activeQuestionsList.reduce((sum, q) => sum + Math.max(...q.options.map(o => o.score)), 0)}. Based on your feedback, this was an {outcome} outcome.
                 </Text>
 
                 <View style={[styles.moodRow, { marginBottom: 20, marginTop: 10 }]}>
-                  <View style={[styles.moodButton, styles.moodButtonActive, { backgroundColor: "#59f0c2", borderColor: "#59f0c2" }]}>
+                  <View style={[styles.moodButton, styles.moodButtonActive, { backgroundColor: t.accent, borderColor: t.accent }]}>
                     <Text style={styles.moodEmoji}>
                       {outcome === "good" ? "😊" : outcome === "average" ? "😐" : "😞"}
                     </Text>
-                    <Text style={[styles.moodLabel, styles.moodLabelActive, { color: "#000" }]}>
+                    <Text style={[styles.moodLabel, styles.moodLabelActive, { color: t.onAccent || "#000" }]}>
                       {outcome === "good" ? "Great" : outcome === "average" ? "Okay" : "Low"}
                     </Text>
                   </View>
@@ -507,20 +509,20 @@ export default function StoryExperience({
 
                 <View style={{ gap: 12 }}>
                   <Pressable
-                    style={styles.primaryButton}
+                    style={[styles.primaryButton, { backgroundColor: t.accent }]}
                     onPress={handleSubmitStory}
                   >
-                    <Text style={styles.primaryButtonText}>Submit Feedback</Text>
+                    <Text style={[styles.primaryButtonText, { color: t.onAccent || '#fff' }]}>Submit Feedback</Text>
                   </Pressable>
                   
                   <Pressable
-                    style={[styles.primaryButton, { backgroundColor: "transparent", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }]}
+                    style={[styles.primaryButton, { backgroundColor: "transparent", borderWidth: 1, borderColor: t.cardBorder || "rgba(255,255,255,0.2)" }]}
                     onPress={() => {
                       setOutcomeReady(false);
                       setPhase("outcome");
                     }}
                   >
-                    <Text style={[styles.primaryButtonText, { color: "#fff" }]}>Watch Again</Text>
+                    <Text style={[styles.primaryButtonText, { color: t.textPrimary }]}>Watch Again</Text>
                   </Pressable>
                 </View>
               </>

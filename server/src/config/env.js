@@ -13,6 +13,18 @@ const env = {
   port: parsePort(process.env.PORT),
   mongoUri: trimEnvValue(process.env.MONGODB_URI),
   jwtSecret: trimEnvValue(process.env.JWT_SECRET) || DEFAULT_JWT_SECRET,
+  corsOrigin: trimEnvValue(process.env.CORS_ORIGIN) || "*",
+  googleClientIds: [
+    trimEnvValue(process.env.GOOGLE_CLIENT_ID),
+    trimEnvValue(process.env.GOOGLE_WEB_CLIENT_ID),
+    trimEnvValue(process.env.GOOGLE_ANDROID_CLIENT_ID),
+    trimEnvValue(process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID),
+    trimEnvValue(process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID),
+  ].filter(Boolean),
+  gmail: {
+    user: trimEnvValue(process.env.GMAIL_USER),
+    appPassword: trimEnvValue(process.env.GMAIL_APP_PASSWORD),
+  },
   cloudinary: {
     cloudName: trimEnvValue(process.env.CLOUDINARY_CLOUD_NAME),
     apiKey: trimEnvValue(process.env.CLOUDINARY_API_KEY),

@@ -8,6 +8,7 @@ const { configureCloudinary } = require("./config/cloudinary");
 const { env, validateServerEnv } = require("./config/env");
 const socketService = require("./services/socketService");
 const { normalizeRoomCode } = require("./utils/helpers");
+const Teacher = require("./models/Teacher");
 const Room = require("./models/Room");
 const Student = require("./models/Student");
 
@@ -16,6 +17,20 @@ if (dns.setDefaultResultOrder) {
 }
 
 const server = http.createServer(app);
+
+const backfillTeacherRoles = async () => {
+  try {
+    const result = await Teacher.updateMany(
+      { role: { $exists: false } },
+      { $set: { role: "teacher" } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[SYNC] Backfilled role for ${result.modifiedCount} existing teachers`);
+    }
+  } catch (err) {
+    console.error(`[SYNC] Role backfill error: ${err.message}`);
+  }
+};
 
 const migrateLegacyRoomCodes = async () => {
   try {
@@ -55,8 +70,17 @@ const startServer = async () => {
 
   await connectDB();
   configureCloudinary();
+
+  try {
+    await Teacher.collection.dropIndex("rooms.roomCode_1");
+    console.log("[SYNC] Dropped faulty unique index on rooms.roomCode");
+  } catch (_err) {
+    // Index may not exist, that's fine
+  }
+
   socketService.init(server);
   await migrateLegacyRoomCodes();
+  await backfillTeacherRoles();
 
   server.listen(env.port, "0.0.0.0", () => {
     const interfaces = os.networkInterfaces();

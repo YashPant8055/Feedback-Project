@@ -112,10 +112,24 @@ export default function AppContent() {
           }
         }
 
-        setThemeSettings(nextThemeSettings);
-        setStoryModePreference(nextStoryModePreference);
         setProfile(parsedSession ?? null);
         setActiveRoom(validatedActiveRoom);
+
+        // Verify session with server — if user was deleted, force logout
+        if (parsedSession) {
+          try {
+            const authHeader = await getAuthHeader();
+            const res = await fetch(`${API_BASE_URL}/users/profile`, {
+              headers: { "Content-Type": "application/json", ...authHeader },
+            });
+            if (!res.ok) {
+              await clearSession();
+              setProfile(null);
+            }
+          } catch (_err) {
+            // Network error — keep session, user might be offline
+          }
+        }
         
         // Web Routing Check
         const isWebPrivacyRoute = Platform.OS === "web" && window?.location?.pathname === "/privacy";

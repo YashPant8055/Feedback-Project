@@ -134,6 +134,27 @@ export default function AdminDashboardScreen({
     } catch (err) {}
   };
 
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      const authHeader = await getAuthHeader();
+      const res = await fetch(`${API_BASE_URL}/admin/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({ role: newRole }),
+      });
+      if (res.ok) {
+        fetchData();
+        setSelectedUser(prev => ({...prev, role: newRole}));
+        showAlert("Role Updated", `User role set to ${newRole.toUpperCase()}`);
+      } else {
+        const data = await res.json();
+        showAlert("Error", data.message || "Failed to update role");
+      }
+    } catch (err) {
+      showAlert("Error", "Connection error");
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
     showAlert("Terminate Account", "Remove user permanently?", [
       { text: "Cancel", style: "cancel" },
@@ -497,6 +518,32 @@ export default function AdminDashboardScreen({
                       <Text style={[s.modalStatLab, { color: colors.muted }]}>{selectedUser.role === 'teacher' ? 'ROOMS' : 'FEEDBACK'}</Text>
                    </View>
                 </View>
+                {selectedUser.role !== 'student' && (
+                  <View style={{ marginBottom: 20 }}>
+                    <Text style={{ color: colors.muted, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 10 }}>ACCESS LEVEL</Text>
+                    <View style={{ flexDirection: 'row', borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: colors.border }}>
+                      <Pressable
+                        style={{
+                          flex: 1, paddingVertical: 14, alignItems: 'center',
+                          backgroundColor: selectedUser.role === 'teacher' ? (colors.mix[0] + '30') : 'transparent',
+                        }}
+                        onPress={() => handleRoleChange(selectedUser._id, 'teacher')}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '900', color: selectedUser.role === 'teacher' ? colors.mix[0] : colors.muted }}>TEACHER</Text>
+                      </Pressable>
+                      <Pressable
+                        style={{
+                          flex: 1, paddingVertical: 14, alignItems: 'center',
+                          backgroundColor: selectedUser.role === 'admin' ? (colors.mix[1] + '30') : 'transparent',
+                        }}
+                        onPress={() => handleRoleChange(selectedUser._id, 'admin')}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '900', color: selectedUser.role === 'admin' ? colors.mix[1] : colors.muted }}>ADMIN</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+
                 <View style={s.modalActions}>
                    {selectedUser.role === 'teacher' && selectedUser.status === 'pending' && (
                      <Pressable style={[s.modalApprove, { backgroundColor: '#10b981' }]} onPress={() => handleApprove(selectedUser._id)}><Text style={s.modalBtnText}>AUTHORIZE ACCESS</Text></Pressable>

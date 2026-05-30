@@ -1,10 +1,11 @@
 let io;
 
 const init = (server) => {
+  const { env } = require("../config/env");
   const { Server } = require("socket.io");
   io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: env.corsOrigin === "*" ? "*" : env.corsOrigin.split(",").map(s => s.trim()),
       methods: ["GET", "POST"],
     },
   });

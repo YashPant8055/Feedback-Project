@@ -1,9 +1,9 @@
 const config = {
   expo: {
-    name: "Feedback",
-    slug: "mobile",
-    scheme: "mobile",
-    version: "1.0.0",
+    name: process.env.EXPO_APP_NAME || "Feedback",
+    slug: process.env.EXPO_APP_SLUG || "mobile",
+    scheme: process.env.EXPO_APP_SCHEME || "mobile",
+    version: process.env.EXPO_APP_VERSION || "1.0.0",
     icon: "./assets/icon.png",
     newArchEnabled: false,
     splash: {
@@ -18,15 +18,16 @@ const config = {
       favicon: "./assets/icon.png"
     },
     android: {
-      package: "com.yash8055.mobile",
+      package: process.env.ANDROID_PACKAGE || "com.yash8055.mobile",
       usesCleartextTraffic: true,
     },
     extra: {
       eas: {
-        projectId: "1ed4d569-1540-4cc5-8dfc-797dc83ad301",
+        projectId: process.env.EAS_PROJECT_ID || "d4503ee5-cdbe-4563-9686-60a9892ed17e",
       },
     },
     plugins: [
+      "@react-native-google-signin/google-signin",
       [
         "expo-camera",
         {

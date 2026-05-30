@@ -19,6 +19,7 @@ router.use(isAdmin);
 router.get("/stats", adminController.getStats);
 router.get("/users", adminController.getAllUsers);
 router.patch("/users/:id/approve", adminController.approveTeacher);
+router.patch("/users/:id/role", adminController.updateUserRole);
 router.delete("/users/:id", adminController.deleteUser);
 router.get("/rooms", adminController.getAllRooms);
 router.delete("/rooms/:id", adminController.deleteRoom);

@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Student = require("../models/Student");
 const Teacher = require("../models/Teacher");
-const Admin = require("../models/Admin");
 const { env } = require("../config/env");
 
 const protect = async (req, res, next) => {
@@ -26,14 +25,7 @@ const protect = async (req, res, next) => {
 
     if (!user) {
       user = await Teacher.findById(decoded.id);
-      role = "teacher";
-    }
-
-    if (!user) {
-      user = await Admin.findById(decoded.id);
-      if (user) {
-        role = user.role;
-      }
+      role = user?.role || "teacher";
     }
 
     if (!user) {

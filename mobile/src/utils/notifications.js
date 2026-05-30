@@ -3,13 +3,15 @@ import * as Device from "expo-device";
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 export async function registerForPushNotificationsAsync() {
   if (Platform.OS === 'web') return null;

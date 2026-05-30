@@ -92,7 +92,7 @@ function buildTeacherResponse(teacher) {
     id: teacher._id,
     name: teacher.name,
     email: teacher.email,
-    role: "teacher",
+    role: teacher.role || "teacher",
     rooms: teacher.rooms || [],
     preferences: {
       themeSettings: {

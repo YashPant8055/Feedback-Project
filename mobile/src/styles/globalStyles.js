@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(143, 200, 255, 0.22)",
   },
   topBarBackText: {
-    color: "#dbe8ff",
+    color: "#ffffff",
     fontWeight: "700",
   },
   userBadge: {
@@ -85,13 +85,13 @@ const styles = StyleSheet.create({
     borderColor: "rgba(143, 200, 255, 0.22)",
   },
   userBadgeEyebrow: {
-    color: "#95a7bf",
+    color: "#94a3b8",
     fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
   userBadgeName: {
-    color: "#f8fbff",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "700",
     marginTop: 2,
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(143, 200, 255, 0.22)",
   },
   logoutButtonText: {
-    color: "#dbe8ff",
+    color: "#ffffff",
     fontWeight: "700",
   },
   storyTopMenuWrap: {
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 2,
     borderRadius: 999,
-    backgroundColor: "#f8fbff",
+    backgroundColor: "#ffffff",
   },
   storyActionMenu: {
     position: "absolute",
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
   },
   storyActionMenuTitle: {
-    color: "#97a9c8",
+    color: "#94a3b8",
     fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: 1.2,
@@ -170,18 +170,18 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 91, 127, 0.28)",
   },
   storyActionMenuItemTitle: {
-    color: "#f8fbff",
+    color: "#ffffff",
     fontSize: 16,
     fontWeight: "900",
   },
   storyActionMenuDangerTitle: {
-    color: "#ff9caf",
+    color: "#ffffff",
     fontSize: 16,
     fontWeight: "900",
   },
   storyActionMenuItemSubtext: {
     marginTop: 5,
-    color: "#a8b8cf",
+    color: "#94a3b8",
     fontSize: 12,
     lineHeight: 17,
   },
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(9, 19, 36, 0.66)",
   },
   kicker: {
-    color: "#75d7ff",
+    color: "#ffffff",
     textTransform: "uppercase",
     letterSpacing: 1.2,
     fontSize: 11,
@@ -214,13 +214,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 24,
     fontWeight: "800",
-    color: "#f8fbff",
+    color: "#ffffff",
   },
   subtitle: {
     marginTop: 10,
     fontSize: 15,
     lineHeight: 22,
-    color: "#d0ddf3",
+    color: "#e2e8f0",
   },
   storyRow: {
     marginTop: 14,
@@ -241,12 +241,12 @@ const styles = StyleSheet.create({
     borderColor: "rgba(58, 211, 255, 0.58)",
   },
   storyButtonText: {
-    color: "#c8d8ef",
+    color: "#ffffff",
     fontWeight: "700",
     fontSize: 13,
   },
   storyButtonTextActive: {
-    color: "#f8fbff",
+    color: "#ffffff",
   },
   optionList: {
     marginTop: 16,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#f8fbff",
+    color: "#ffffff",
   },
   primaryButton: {
     marginTop: 18,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(143, 200, 255, 0.22)",
   },
   outcomeReplayText: {
-    color: "#f8fbff",
+    color: "#ffffff",
     fontWeight: "800",
     fontSize: 14,
   },
