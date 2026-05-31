@@ -1,4 +1,47 @@
+const https = require("https");
+const { URL } = require("url");
+const dns = require("dns");
 const Room = require("../models/Room");
+
+/**
+ * Makes an HTTPS GET request resolving the hostname to an IP first.
+ * Works around Node.js undici TCP timeout issues on some Windows configurations.
+ * Returns parsed JSON body, or throws on failure.
+ */
+function httpsGetJson(urlString) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(urlString);
+    dns.resolve4(url.hostname, (err, addresses) => {
+      if (err) return reject(new Error(`DNS resolution failed: ${err.message}`));
+      const ip = addresses[0];
+      const opts = {
+        hostname: ip,
+        path: url.pathname + url.search,
+        servername: url.hostname,
+        method: "GET",
+        timeout: 15000,
+        headers: {
+          Accept: "application/json",
+          Host: url.hostname,
+        },
+      };
+      const req = https.get(opts, (res) => {
+        let body = "";
+        res.on("data", (chunk) => { body += chunk; });
+        res.on("end", () => {
+          try {
+            resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode, body: JSON.parse(body) });
+          } catch (e) {
+            reject(new Error(`Failed to parse JSON response (${res.statusCode}): ${body.slice(0, 200)}`));
+          }
+        });
+      });
+      req.on("error", reject);
+      req.on("timeout", () => { req.destroy(); reject(new Error("Request timed out")); });
+      req.end();
+    });
+  });
+}
 
 const defaultPreferences = {
   themeSettings: {
@@ -125,4 +168,5 @@ module.exports = {
   buildStudentResponse,
   buildTeacherResponse,
   formatDate,
+  httpsGetJson,
 };

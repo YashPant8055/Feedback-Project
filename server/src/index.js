@@ -1,16 +1,8 @@
-require("dotenv").config();
 const os = require("os");
 const dns = require("dns");
 const http = require("http");
-const app = require("./app");
-const connectDB = require("./config/db");
-const { configureCloudinary } = require("./config/cloudinary");
-const { env, validateServerEnv } = require("./config/env");
+const { app, env, initialize } = require("./app");
 const socketService = require("./services/socketService");
-const { normalizeRoomCode } = require("./utils/helpers");
-const Teacher = require("./models/Teacher");
-const Room = require("./models/Room");
-const Student = require("./models/Student");
 
 if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder("ipv4first");
@@ -18,69 +10,10 @@ if (dns.setDefaultResultOrder) {
 
 const server = http.createServer(app);
 
-const backfillTeacherRoles = async () => {
-  try {
-    const result = await Teacher.updateMany(
-      { role: { $exists: false } },
-      { $set: { role: "teacher" } }
-    );
-    if (result.modifiedCount > 0) {
-      console.log(`[SYNC] Backfilled role for ${result.modifiedCount} existing teachers`);
-    }
-  } catch (err) {
-    console.error(`[SYNC] Role backfill error: ${err.message}`);
-  }
-};
-
-const migrateLegacyRoomCodes = async () => {
-  try {
-    const rooms = await Room.find({ roomCode: { $regex: /-/ } });
-    if (rooms.length > 0) {
-      console.log(
-        `[SYNC] Found ${rooms.length} rooms with legacy dashed codes. Migrating...`
-      );
-      for (const room of rooms) {
-        const oldCode = room.roomCode;
-        const newCode = normalizeRoomCode(oldCode);
-
-        room.roomCode = newCode;
-        await room.save();
-
-        await Student.updateMany(
-          { "joinedRooms.roomCode": oldCode },
-          { $set: { "joinedRooms.$.roomCode": newCode } }
-        );
-
-        await Student.updateMany(
-          { "feedback.roomCode": oldCode },
-          { $set: { "feedback.$[elem].roomCode": newCode } },
-          { arrayFilters: [{ "elem.roomCode": oldCode }] }
-        );
-
-        console.log(`[SYNC] Migrated ${oldCode} -> ${newCode}`);
-      }
-    }
-  } catch (err) {
-    console.error(`[SYNC] Migration error: ${err.message}`);
-  }
-};
-
 const startServer = async () => {
-  validateServerEnv();
-
-  await connectDB();
-  configureCloudinary();
-
-  try {
-    await Teacher.collection.dropIndex("rooms.roomCode_1");
-    console.log("[SYNC] Dropped faulty unique index on rooms.roomCode");
-  } catch (_err) {
-    // Index may not exist, that's fine
-  }
+  await initialize();
 
   socketService.init(server);
-  await migrateLegacyRoomCodes();
-  await backfillTeacherRoles();
 
   server.listen(env.port, "0.0.0.0", () => {
     const interfaces = os.networkInterfaces();

@@ -15,8 +15,8 @@ try {
   WebBrowser.maybeCompleteAuthSession();
 } catch (_e) {}
 
-export default function AuthScreen({ onEnter, loading, theme }) {
-  const [mode, setMode] = useState("login");
+export default function AuthScreen({ onEnter, loading, theme, initialMode }) {
+  const [mode, setMode] = useState(initialMode || "login");
   const [form, setForm] = useState({
     name: "",
     email: "",

@@ -52,6 +52,8 @@ export default function DashboardScreen({
   onNavigateToAnimation,
   onViewPrivacy,
   theme,
+  initialSideMenuScreen,
+  onSideMenuScreenChange,
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -60,8 +62,23 @@ export default function DashboardScreen({
   const [selectedMood, setSelectedMood] = useState(null);
   const [writtenFeedback, setWrittenFeedback] = useState("");
   const [savingType, setSavingType] = useState(null);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [sideMenuScreen, setSideMenuScreen] = useState("main");
+  const [profileMenuOpen, setProfileMenuOpen] = useState(!!initialSideMenuScreen);
+  const [sideMenuScreen, setSideMenuScreen] = useState(initialSideMenuScreen || "main");
+  const prevSideMenuRef = useRef(sideMenuScreen);
+  useEffect(() => {
+    if (sideMenuScreen !== prevSideMenuRef.current) {
+      prevSideMenuRef.current = sideMenuScreen;
+      onSideMenuScreenChange?.(sideMenuScreen);
+    }
+  }, [sideMenuScreen, onSideMenuScreenChange]);
+  useEffect(() => {
+    if (initialSideMenuScreen && initialSideMenuScreen !== sideMenuScreen) {
+      setSideMenuScreen(initialSideMenuScreen);
+      setProfileMenuOpen(true);
+    } else if (!initialSideMenuScreen && sideMenuScreen !== "main") {
+      setProfileMenuOpen(false);
+    }
+  }, [initialSideMenuScreen]);
   const [feedbackHistory, setFeedbackHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState("");

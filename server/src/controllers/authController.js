@@ -9,6 +9,7 @@ const {
   buildStudentResponse,
   buildTeacherResponse,
   defaultPreferences,
+  httpsGetJson,
 } = require("../utils/helpers");
 
 const generateToken = (user, role) => {
@@ -467,17 +468,16 @@ exports.googleLogin = async (req, res) => {
       return res.status(400).json({ message: "Google ID token is required" });
     }
 
-    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+    const result = await httpsGetJson(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
     
-    if (!response.ok) {
-      const errData = await response.json();
+    if (!result.ok) {
       return res.status(401).json({
         message: "Invalid Google ID token",
-        error: errData.error_description || "Token verification failed",
+        error: result.body.error_description || "Token verification failed",
       });
     }
 
-    const payload = await response.json();
+    const payload = result.body;
     const { email, name, picture, aud, email_verified: emailVerified } = payload;
 
     if (!email) {
